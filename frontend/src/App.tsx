@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState, ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
-import Header from './components/layout/Header'; 
+import Header from './components/layout/Header';
 
 function App() {
+
+  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
  
