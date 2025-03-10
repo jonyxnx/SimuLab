@@ -10,6 +10,47 @@ function App() {
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('The file must not exceed 5MB');
+      return;
+    }
+
+    const allowedFormats = ['.csv', '.xlsx', '.json', '.txt'];
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!allowedFormats.includes(`.${fileExtension}`)) {
+      setError('Invalid file format.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Error uploading the file');
+      }
+
+      navigate('/results');
+    } catch (error) {
+      setError('There was an error uploading the file. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-black text-white font-sans">
  
@@ -55,7 +96,7 @@ function App() {
         </div>
 
         <div className="relative bg-none via-indigo-900 to-blue-900 p-8 rounded-3xl shadow-2xl overflow-hidden">
-        {/* Efecto de luz futurista */}
+
         <div className="absolute inset-0 via-indigo-500/10 to-blue-500/10 animate-pulse"></div>
 
         <div className="relative z-10 text-center">
@@ -68,15 +109,20 @@ function App() {
           </p>
 
           <label className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg cursor-pointer hover:from-purple-700 hover:to-blue-700 transition-all duration-300">
-            <input type="file" className="hidden" />
-            <span>Upload file</span>
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-            </svg>
-          </label>
-
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={isLoading}
+              />
+              <span>{isLoading ? 'Cargando...' : 'Upload file'}</span>
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+            </label>
+            {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
           <p className="text-sm text-gray-400 mt-4">
-            Formatos soportados: .csv, .xlsx, .json, .txt
+            Supported files: .csv, .xlsx, .json, .txt
           </p>
         </div>
 
